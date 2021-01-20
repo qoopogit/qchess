@@ -6,6 +6,7 @@
 package net.qoopo.qchess.core.util;
 
 /**
+ * Contador de Nodos por segundo
  *
  * @author alberto
  */
@@ -34,6 +35,6 @@ public class NPS {
     }
 
     public static long getNPS() {
-        return count * 1000 / getDelta();
+        return getDelta() != 0 ? (count * 1000 / getDelta()) : 0;
     }
 }

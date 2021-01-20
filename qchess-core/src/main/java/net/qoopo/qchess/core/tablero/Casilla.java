@@ -15,17 +15,23 @@ public class Casilla {
 
     private String nombre;
     private Pieza pieza;
-    private int fila, columna; //desde 1 a 8
+    protected final int fila, col; //desde 1 a 8
+
+    /**
+     * indica si es una casilla negra
+     */
+    private boolean negra;
 
     /**
      * Indica que esta casilla esta habilitada para comer al paso.
      */
     private boolean alPaso;
 
-    public Casilla(String nombre, int columna, int fila) {
+    public Casilla(String nombre, int columna, int fila, boolean negra) {
         this.nombre = nombre;
         this.fila = fila;
-        this.columna = columna;
+        this.col = columna;
+        this.negra = negra;
     }
 
     public boolean isOcupada() {
@@ -52,17 +58,17 @@ public class Casilla {
         return fila;
     }
 
-    public void setFila(int fila) {
-        this.fila = fila;
+//    public void setFila(int fila) {
+//        this.fila = fila;
+//    }
+
+    public int getCol() {
+        return col;
     }
 
-    public int getColumna() {
-        return columna;
-    }
-
-    public void setColumna(int columna) {
-        this.columna = columna;
-    }
+//    public void setCol(int col) {
+//        this.col = col;
+//    }
 
     public boolean isAlPaso() {
         return alPaso;
@@ -72,16 +78,26 @@ public class Casilla {
         this.alPaso = alPaso;
     }
 
+    public boolean isNegra() {
+        return negra;
+    }
+
+    public void setNegra(boolean negra) {
+        this.negra = negra;
+    }
+
     @Override
     public String toString() {
 //        return "n=" + nombre + ", o=" + ocupada + ", p=" + pieza;
 //        return pieza != null ? pieza.toString() : nombre;
-        return pieza != null ? pieza.toString() : "  ";
+//        return pieza != null ? pieza.toString() : (negra ? "  " : "XX");
+        return pieza != null ? pieza.toString() : (negra ? "  " : "::");
+//        return pieza != null ? pieza.toString() : (negra ? "  " : Character.toString(219)); //178,219
     }
 
     @Override
     public Casilla clone() {
-        Casilla t = new Casilla(nombre, columna, fila);
+        Casilla t = new Casilla(nombre, col, fila, negra);
         if (pieza != null) {
             t.setPieza(pieza.clone());
         }

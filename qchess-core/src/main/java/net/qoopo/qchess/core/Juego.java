@@ -5,6 +5,7 @@
  */
 package net.qoopo.qchess.core;
 
+import net.qoopo.qchess.core.tablero.Tablero;
 import java.util.ArrayList;
 import java.util.Scanner;
 import net.qoopo.qchess.core.jugador.Humano;
@@ -26,14 +27,17 @@ public class Juego extends Thread {
     private String eco;
     private String apertura;
     private Tablero tablero = new Tablero();
-    private ArrayList<String> movimientos = new ArrayList<>();
+    private final ArrayList<String> movimientos = new ArrayList<>();
+    private final ArrayList<Movimiento> movimientosMov = new ArrayList<>();
     private int posActual = -1;
-    private boolean jugando;
+
+//    //variable que indica que se esta reproduciendo una jugada en lugar de estar realizando un juego
+    private boolean jugando = true;
 
     public Juego() {
         tablero.setJugadorBlancas(new Humano("Humano"));
         tablero.setJugadorNegras(new Humano("Humano"));
-        tablero.iniciarEstandard();
+        tablero.posicionInicial();
     }
 
     /**
@@ -42,7 +46,7 @@ public class Juego extends Thread {
      * @param FEN
      */
     public void cargarFEN(String FEN) {
-        this.tablero.iniciarFEN(FEN);
+        this.tablero.cargarFEN(FEN);
     }
 
     /**
@@ -67,43 +71,32 @@ public class Juego extends Thread {
                         valor = "";
                     }
                     switch (partes[0].trim()) {
-                        case "Event":
+                        case "Event" ->
                             setNombreEvento(valor);
-                            break;
-                        case "Site":
+                        case "Site" ->
                             setSitio(valor);
-                            break;
-                        case "Date":
+                        case "Date" ->
                             setFecha(valor);
-                            break;
-                        case "Round":
+                        case "Round" ->
                             setRound(valor);
-                            break;
-                        case "White":
+                        case "White" ->
                             setBlancasNombre(valor);
-                            break;
-                        case "Black":
+                        case "Black" ->
                             setNegrasNombre(valor);
-                            break;
-                        case "Result":
+                        case "Result" ->
                             setResultado(valor);
-                            break;
-                        case "PlyCount":
+                        case "PlyCount" ->
                             setPlyCount(valor);
-                            break;
-                        case "ECO":
+                        case "ECO" ->
                             setEco(valor);
-                            break;
-                        case "Opening":
+                        case "Opening" ->
                             setApertura(valor);
-                            break;
                     }
                 } else {
                     // lineas de las jugadas
                     //1. e4 e5 2. Nf3 Nc6 3. Bc4 d5 4. exd5 Nb4 5. c3 Nxd5 6. d4 Nde7 7. Nxe5 f6 8.
                     //Bf7# 1-0
-                    String[] tokens = linea.split(" ");
-                    for (String token : tokens) {
+                    for (String token : linea.split(" ")) {
                         if (!token.contains(".")) {
                             if (esTokenValido(token)) {
                                 agregarMovimiento(token);
@@ -115,8 +108,9 @@ public class Juego extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        tablero.iniciarEstandard();
-        representarMovimientos();
+        jugando = false;
+//        tablero.posicionInicial();
+        reproducirMovimientos();
     }
 
     /**
@@ -138,7 +132,6 @@ public class Juego extends Thread {
         if (token.equalsIgnoreCase("O-O-O")) {
             return true;
         }
-
         if (token.equalsIgnoreCase("1-1")) {
             return false;
         }
@@ -154,8 +147,8 @@ public class Juego extends Thread {
         return true;
     }
 
-    public void representarMovimientos() {
-        tablero.iniciarEstandard();
+    public void reproducirMovimientos() {
+        tablero.posicionInicial();
         for (int i = 0; i <= posActual; i++) {
             tablero.mover(movimientos.get(i));
             tablero.finTurno();
@@ -172,14 +165,16 @@ public class Juego extends Thread {
     }
 
     public void siguiente() {
+        RMovimiento rMovimiento = null;
         // si esta navegando 
         if (posActual < movimientos.size() - 1) {
             posActual++;
             System.out.println("Mov [" + (getNumeroJugada()) + "] [" + tablero.getJugadorActual().getNombre() + " /  " + tablero.getJugadorActual().getColorNombre() + "] [" + getMovimientoActual() + "]");
             //representarMovimientos();
-            tablero.mover(getMovimientoActual());
+            rMovimiento = tablero.mover(getMovimientoActual());
             tablero.finTurno();
         } else {
+            System.out.println("vamos a jugar");
             // si esta jugando, espera que el movimiento se realice
             if (tablero.getJugadorActual().isHumano()) {
                 //leemos el movimiento desde la entrada estandar
@@ -190,7 +185,8 @@ public class Juego extends Thread {
                     agregarMovimiento(movimiento);
                     posActual++;
                     System.out.println("Mov [" + (getNumeroJugada()) + "] [" + tablero.getJugadorActual().getNombre() + " /  " + tablero.getJugadorActual().getColorNombre() + "] [" + getMovimientoActual() + "]");
-                    valido = tablero.mover(movimiento);
+                    rMovimiento = tablero.mover(movimiento);
+                    valido = rMovimiento.isSatisfactorio();
                 }
                 tablero.finTurno();
             } else {
@@ -199,10 +195,13 @@ public class Juego extends Thread {
                     agregarMovimiento(movimiento.getNotacion());// toma la notacion del movimento y no la referencia de las casillas o piezas porque corresponden a otro tablero
                     posActual++;
                     System.out.println("Mov [" + (getNumeroJugada()) + "] [" + tablero.getJugadorActual().getNombre() + " /  " + tablero.getJugadorActual().getColorNombre() + "] [" + getMovimientoActual() + "]");
-                    tablero.mover(movimiento);
+                    rMovimiento = tablero.mover(movimiento);
                     tablero.finTurno();
                 }
             }
+        }
+        if (rMovimiento != null) {
+            this.movimientosMov.add(rMovimiento.getMovimiento());
         }
         tablero.verificarEstado();
     }
@@ -211,17 +210,17 @@ public class Juego extends Thread {
         if (posActual > 0) {
             posActual--;
         }
-        representarMovimientos();
+        reproducirMovimientos();
     }
 
     public void inicio() {
         posActual = -1;
-        representarMovimientos();
+        reproducirMovimientos();
     }
 
     public void fin() {
         posActual = movimientos.size() - 1;
-        representarMovimientos();
+        reproducirMovimientos();
     }
 
     public String getMovimientoActual() {
@@ -232,8 +231,17 @@ public class Juego extends Thread {
         }
     }
 
+    public String getMovimientoActualMov() {
+        if (movimientosMov.size() > posActual && posActual >= 0) {
+            return movimientosMov.get(posActual).getNotacion();
+        } else {
+            return "N/A";
+        }
+    }
+
     public void limpiarMovimientos() {
         movimientos.clear();
+        movimientosMov.clear();
     }
 
     public String getNombreEvento() {
@@ -342,14 +350,51 @@ public class Juego extends Thread {
     }
 
     /**
-     * Reproduce una partida
+     * Reproduce una partida o inicia el loop del juego
      */
-    public void reproducir() {
+    public void iniciar() {
         getTablero().imprimir();
-        while (isPuedeAvanzar() || !tablero.isJaqueMate()) {
+//        System.out.println("antes while");
+        while ((isPuedeAvanzar() || jugando) && !tablero.isJaqueMate()) {
+//            System.out.println("lloooopppp");
             siguiente();
             getTablero().imprimir();
         }
+    }
+
+    /**
+     * Realiza un loop inverso de las jugadas y deshace los movimientos
+     */
+    public void reversa() {
+        System.out.println("Jugadas en lista   :" + movimientos.size());
+        System.out.println("Jugadas en lista 2 :" + movimientosMov.size());
+        getTablero().finTurno();
+        getTablero().imprimir();
+        while (posActual > -1) {
+            System.out.println("Mov [" + (getNumeroJugada()) + "] [" + tablero.getJugadorActual().getNombre() + " /  " + tablero.getJugadorActual().getColorNombre() + "] [" + getMovimientoActual() + "] [" + getMovimientoActualMov() + "]");
+            tablero.desMover(movimientosMov.get(posActual));
+            getTablero().finTurno();
+            posActual--;
+            getTablero().imprimir();
+        }
+    }
+
+    /**
+     * Imprime las jugadas al aconsola
+     */
+    public void imprimirJugadas() {
+        StringBuilder sb = new StringBuilder();
+        int c = 1;
+        int c2 = 1;
+        for (String movimiento : this.movimientos) {
+            if (c2 % 2 != 0) {
+                sb.append(" ").append(c).append(".");
+                c++;
+            }
+            sb.append(" ").append(movimiento);
+            c2++;
+        }
+        System.out.println(sb.toString());
     }
 
 }

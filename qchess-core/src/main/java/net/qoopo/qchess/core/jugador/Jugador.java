@@ -7,7 +7,7 @@ package net.qoopo.qchess.core.jugador;
 
 import net.qoopo.qchess.core.Movimiento;
 import net.qoopo.qchess.core.Pieza;
-import net.qoopo.qchess.core.Tablero;
+import net.qoopo.qchess.core.tablero.Tablero;
 
 /**
  *

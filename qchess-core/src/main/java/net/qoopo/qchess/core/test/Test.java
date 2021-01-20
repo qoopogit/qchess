@@ -5,9 +5,9 @@
  */
 package net.qoopo.qchess.core.test;
 
-import net.qoopo.qchess.core.Juego;
-import net.qoopo.qchess.core.Movimiento;
-import net.qoopo.qchess.core.jugador.artificial.QChess1;
+import net.qoopo.qchess.core.RMovimiento;
+import net.qoopo.qchess.core.tablero.Tablero;
+import net.qoopo.qchess.core.util.TimeUtil;
 
 /**
  *
@@ -15,24 +15,6 @@ import net.qoopo.qchess.core.jugador.artificial.QChess1;
  */
 public class Test {
 
-    /**
-     * Ejemplo de un juego
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
-        Juego juego = new Juego();
-        juego.getTablero().setJugadorBlancas(new QChess1("Blancas "));
-        juego.getTablero().setJugadorNegras(new QChess1("Negras "));
-        juego.reproducir();
-        System.out.println("Fin del juego, voy revisar movimientos posibles");
-        System.out.println("Score=" + juego.getTablero().getScore());
-        System.out.println(juego.getTablero().getJugadorActual().getNombre() + " / " + juego.getTablero().getJugadorActual().getColorNombre() + " Juegos posibles=" + juego.getTablero().getMovimientoValidos().size());
-        System.out.println(juego.getTablero().getJugadorOponente().getNombre() + " / " + juego.getTablero().getJugadorOponente().getColorNombre() + " Juegos posibles=" + juego.getTablero().getMovimientoValidosOponente().size());
-        for (Movimiento mov : juego.getTablero().getMovimientoValidos()) {
-            System.out.println("  " + mov);
-        }
-    }
 //    /**
 //     * Ejemplo que carga una partida en formato pen
 //     *
@@ -40,6 +22,7 @@ public class Test {
 //     */
 //    public static void main(String[] args) {
 //
+//        // <editor-fold defaultstate="collapsed" desc="Jugadas">
 ////        String pen = "[Event \"Saint Louis Blitz 2017\"]\n"
 ////                + "[Site \"Saint Louis USA\"]\n"
 ////                + "[Date \"2017.08.17\"]\n"
@@ -103,7 +86,7 @@ public class Test {
 ////                + "Rc1 a6 16. f5 Nb5 17. fxg6 hxg6 18. Bb4 Nxd4 19. Qxd4 Nd7 20. Nxd5 Rxe5 21. Qf2\n"
 ////                + "f5 22. Rfd1 Re4 23. Bc3 Rc8 24. Bxg7 Rxc1 25. Rxc1 Kxg7 26. Rc7 Kf8 27. Qd2 Qe8\n"
 ////                + "28. Nf6 Re1+ 29. Kf2 Re2+ 30. Qxe2 Qxe2+ 31. Kxe2 Nxf6 32. Rc6 Nd5 33. Rd6 1-0";
-////
+////// </editor-fold>
 //        String pen = "[Event \"Evento local\"]\n"
 //                + "[Site \"Sitio local\"]\n"
 //                + "[Date \"2021.01.11\"]\n"
@@ -123,61 +106,55 @@ public class Test {
 //        Juego juego = new Juego();
 //        juego.getTablero().setLenguaje(Constantes.LENGUAJE_INGLES);
 //        juego.cargarPEN(pen);
-//        juego.reproducir();
+//        juego.iniciar();
 //        System.out.println("Fin del juego, voy revisar movimientos posibles");
-//        System.out.println("Score=" + juego.getTablero().getScore());
+//        System.out.println("Score=" + juego.getTablero().getScoreMaterial());
 //        System.out.println(juego.getTablero().getJugadorActual().getNombre() + " / " + juego.getTablero().getJugadorActual().getColorNombre() + " Juegos posibles=" + juego.getTablero().getMovimientoValidos().size());
 //        System.out.println(juego.getTablero().getJugadorOponente().getNombre() + " / " + juego.getTablero().getJugadorOponente().getColorNombre() + " Juegos posibles=" + juego.getTablero().getMovimientoValidosOponente().size());
 //        for (Movimiento mov : juego.getTablero().getMovimientoValidos()) {
 //            System.out.println("  " + mov);
 //        }
-//    }
 //
-//    /**
-//     * Crea los movimientos de un juego manualmente
-//     * @param args 
-//     */
-//    public static void main(String[] args) {
-//        Tablero tablero = new Tablero();
-//        tablero.iniciarEstandard();
-//        tablero.imprimir();
-//        //        tablero.moverTest("Dxa5+");
-//        //1. e4 e5 2. Nf3 Nc6 3. Bc4 d5 4. exd5 Nb4 5. c3 Nxd5 6. d4 Nde7 7. Nxe5 f6 8.Bf7# 1-0        
-//        tablero.setLenguaje(Constantes.LENGUAJE_INGLES);        
-//        tablero.moverTest("e4");
-//        tablero.moverTest("e5");        
-//        tablero.moverTest("Nf3");
-//        tablero.moverTest("Nc6");        
-//        tablero.moverTest("Bc4");
-//        tablero.moverTest("d5");        
-//        tablero.moverTest("exd5");
-//        tablero.moverTest("Nb4");        
-//        tablero.moverTest("c3");
-//        tablero.moverTest("Nxd5");        
-//        tablero.moverTest("d4");
-//        tablero.moverTest("Nde7");        
-//        tablero.moverTest("Nxe5");
-//        tablero.moverTest("f6");        
-//        tablero.moverTest("Bf7");        
+//        System.out.println("Ahora voy de reversa");
+//        juego.reversa();
+//        System.out.println("Supuesta posicion inicial");
+//        juego.getTablero().imprimir();
+//        System.out.println("Jugadas");
+//        juego.imprimirJugadas();
 //    }
 //    public static void main(String[] args) {
 //        Tablero tablero = new Tablero();
-////        tablero.iniciarEstandard();
-////        tablero.iniciarFEN("4t1r1/p1p2pp1/1d1p3p/1P3P2/1P6/2c1D3/PA4PP/4T1R1/");
-////        tablero.iniciarFEN("t1ar3t/p2pApCp/c4c2/1p1CP2P/6P1/3P4/P1P1R3/d5a1 n - - 0 23");
-//        tablero.iniciarFEN("5k2/8/pp1R2p1/3n1p2/8/1P6/P3K1PP/8 b - - 3 33");
+//        tablero.posicionInicial();
+//        Movimiento mov1 = Movimiento.get(tablero.get("e2"), tablero.get("e4"));
+//        tablero.mover(mov1);
+//        tablero.finTurno();
 //        tablero.imprimir();
-//        System.out.println("FEN=" + tablero.getFEN());
-//        tablero.iniciarFEN(tablero.getFEN());
+//        tablero.desMover(mov1);
 //        tablero.imprimir();
 //    }
-//    public static void main(String[] args) {
-//        Tablero tablero = new Tablero();
-//        tablero.iniciarEstandard();
+////    
+    public static void main(String[] args) {
+        Tablero tablero = new Tablero();
+//        tablero.posicionInicial();
+        tablero.cargarFEN("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"); // resultado esperado 1486
+        tablero.calcular();
+        tablero.imprimir();
+//        RMovimiento rMov= tablero.mover("e1g1");
+//        tablero.finTurno();
 //        tablero.imprimir();
-//        tablero.moverTest("e4");
-////        tablero.moverTest("Ta5");
-////        tablero.moverTest("Ad6");
-//        tablero.moverTest("Dxa5+");
-//    }    
+//        tablero.finTurno();
+//        tablero.desMover(rMov.getMovimiento());
+//        tablero.imprimir();
+//        System.out.println("Mover=" + tablero.mover("d7c8q"));
+//        System.out.println("Mover=" + tablero.mover("dxc8q"));
+//        System.out.println("Mover=" + tablero.mover("dxc8=Q"));
+//        System.out.println("Mover=" + tablero.mover("dxc8=R"));
+//        System.out.println("Mover=" + tablero.mover("dxc8r"));
+//        tablero.finTurno();
+//        tablero.imprimir();
+//        tablero.setMovimientosLegales(false);
+        long tInicio = System.currentTimeMillis();
+        long nodos = tablero.perft(2);
+        System.out.println("Nodos " + nodos + "  T:" + TimeUtil.getTime(tInicio));
+    }
 }

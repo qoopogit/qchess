@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.qoopo.qchess.core.Movimiento;
 import net.qoopo.qchess.core.Pieza;
-import net.qoopo.qchess.core.Tablero;
 import net.qoopo.qchess.core.tablero.Casilla;
+import net.qoopo.qchess.core.tablero.Tablero;
 
 /**
  *
@@ -26,40 +26,36 @@ public class Alfil extends Pieza {
 
     public Alfil() {
         this.nombre = "A";
+        this.simbolo = "♗";
     }
 
     @Override
-    public boolean esMovimientoValido(Tablero tablero, Movimiento movimiento, boolean validarPermiteJaque) {
-        if (movimiento.getDestino() == null) {
-            return false;
-        }
-        //si el destino esta ocupado con una pieza del mismo color, el movimiento no es valido
-        if (movimiento.getDestino().isOcupada() && movimiento.getDestino().getPieza().getColor() == color) {
+    public boolean esMovimientoValido(Tablero tablero, Movimiento movimiento, boolean movLegales) {
+        if (!esMovimientoValido(movimiento, tablero)) {
             return false;
         }
 
-        int difFilas = Math.abs(movimiento.getDestino().getFila() - movimiento.getOrigen().getFila());
-        int difColumnas = Math.abs(movimiento.getDestino().getColumna() - movimiento.getOrigen().getColumna());
-
-        return ((difFilas == difColumnas)
+        int difFilas = Math.abs(movimiento.getDestino().row-movimiento.getOrigen().row);
+        int difCols = Math.abs(movimiento.getDestino().col-movimiento.getOrigen().col);
+        return ((difFilas == difCols)
                 && !tablero.estaObstruido(movimiento.getOrigen(), movimiento.getDestino()))
-                && !permiteJaque(tablero, movimiento, validarPermiteJaque);
+                && !permiteJaque(tablero, movimiento, movLegales);
     }
 
     @Override
-    public List<Movimiento> getMovimientosValidos(Tablero tablero, Casilla casilla, boolean validarPermiteJaque) {
+    public List<Movimiento> getMovimientos(Tablero tablero, Casilla casilla, boolean movLegales) {
         List<Movimiento> lstTmp = new ArrayList<>();
         List<Movimiento> lista = new ArrayList<>();
 
         // son dos diagonales
         for (int dif = -8; dif <= 8; dif++) {
-            lstTmp.add(Movimiento.get(casilla, tablero.get(casilla.getColumna() + dif, casilla.getFila() + dif)));
+            lstTmp.add(Movimiento.get(casilla, tablero.get(casilla.getCol() + dif, casilla.getFila() + dif)));
         }
         for (int dif = -8; dif <= 8; dif++) {
-            lstTmp.add(Movimiento.get(casilla, tablero.get(casilla.getColumna() + dif, casilla.getFila() + dif * -1)));
+            lstTmp.add(Movimiento.get(casilla, tablero.get(casilla.getCol() + dif, casilla.getFila() + dif * -1)));
         }
 
-        lstTmp.stream().filter(mov -> (esMovimientoValido(tablero, mov, validarPermiteJaque))).forEachOrdered(mov -> {
+        lstTmp.stream().filter(mov -> (esMovimientoValido(tablero, mov, movLegales))).forEachOrdered(mov -> {
             lista.add(mov);
         });
         return lista;
@@ -70,7 +66,7 @@ public class Alfil extends Pieza {
         Pieza t = new Alfil();
         t.setAmenazas(amenazas);
         t.setColor(color);
-        t.setMovida(movida);
+        t.setVecesMovida(vecesMovida);
         t.setObjetivos(objetivos);
         t.setProtectores(protectores);
         return t;
@@ -78,7 +74,7 @@ public class Alfil extends Pieza {
 
     @Override
     public int getValor() {
-        return 300;
+        return 350;
     }
 
 }

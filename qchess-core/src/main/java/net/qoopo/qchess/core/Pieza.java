@@ -6,7 +6,14 @@
 package net.qoopo.qchess.core;
 
 import java.util.List;
+import net.qoopo.qchess.core.piezas.Alfil;
+import net.qoopo.qchess.core.piezas.Caballo;
+import net.qoopo.qchess.core.piezas.Dama;
+import net.qoopo.qchess.core.piezas.Peon;
+import net.qoopo.qchess.core.piezas.Rey;
+import net.qoopo.qchess.core.piezas.Torre;
 import net.qoopo.qchess.core.tablero.Casilla;
+import net.qoopo.qchess.core.tablero.Tablero;
 
 /**
  * Representa una pieza en el tablero
@@ -18,8 +25,24 @@ public abstract class Pieza {
     public static final int BLANCA = 1;
     public static final int NEGRA = -1;
 
+    /**
+     * Realiza una evaluacion de esta pieza. Calcula el numero de piezas que nos
+     * atacan, el numero de piezas que nos protegen
+     */
+//    public abstract void evaluar();
+    /**
+     *
+     * @param color
+     * @return
+     */
+    public static String getColorNombre(int color) {
+        return (color == Pieza.BLANCA ? "Blancas" : "Negras");
+    }
+
     //Nombre
     protected String nombre;
+    //Simbolo
+    protected String simbolo;
 
     // Numero de piezas que amenazan estas pieza
     protected int amenazas;
@@ -35,21 +58,14 @@ public abstract class Pieza {
 
 //    private Tablero tablero;
     // Indica si la pieza ya fue movida
-    protected boolean movida = false;
-
-    /**
-     * Realiza una evaluacion de esta pieza. Calcula el numero de piezas que nos
-     * atacan, el numero de piezas que nos protegen
-     */
-//    public abstract void evaluar();
-
-    public static String getColorNombre(int color) {
-        return (color == Pieza.BLANCA ? "Blancas" : "Negras");
-    }
+    protected int vecesMovida = 0;
 
     @Override
     public String toString() {
-        return nombre + (color == BLANCA ? "b" : "n");
+//        return nombre + (color == BLANCA ? "b" : "n");
+//        return simbolo + (color == BLANCA ? " " : "*");
+//        return nombre + (color == BLANCA ? " " : "*");
+        return " " + (color == BLANCA ? nombre : nombre.toLowerCase());
     }
 
     public String getNombre() {
@@ -106,11 +122,31 @@ public abstract class Pieza {
     }
 
     public boolean isMovida() {
-        return movida;
+        return vecesMovida > 0;
     }
 
-    public void setMovida(boolean movida) {
-        this.movida = movida;
+    public int getVecesMovida() {
+        return vecesMovida;
+    }
+
+    public void setVecesMovida(int vecesMovida) {
+        this.vecesMovida = vecesMovida;
+    }
+
+    public void aumentarMovs() {
+        vecesMovida++;
+    }
+
+    public void restarMovs() {
+        vecesMovida++;
+    }
+
+    public String getSimbolo() {
+        return simbolo;
+    }
+
+    public void setSimbolo(String simbolo) {
+        this.simbolo = simbolo;
     }
 
     /**
@@ -126,14 +162,54 @@ public abstract class Pieza {
     public abstract boolean esMovimientoValido(Tablero tablero, Movimiento movimiento, boolean validarPermiteJaque);
 
     /**
+     * Validacion general para todas las piezas
+     *
+     * @param movimiento
+     * @param tablero
+     * @return
+     */
+    protected boolean esMovimientoValido(Movimiento movimiento, Tablero tablero) {
+
+        //si el destino no ha sido configurado
+        if (!movimiento.getDestino().isSet() || !movimiento.getOrigen().isSet()) {
+            return false;
+        }
+
+        Casilla origen = movimiento.getOrigen(tablero);
+        Casilla destino = movimiento.getDestino(tablero);
+        if (origen == null || destino == null) {
+            return false;
+        }
+
+        //si la casilla de origen y de destino son la misma, el movimiento no es valido
+//        if (movimiento.getOrigen().equalsIgnoreCase(movimiento.getDestino())) {
+        if (movimiento.getOrigen().equals(movimiento.getDestino())) {
+            return false;
+        }
+
+        Pieza pieza = origen.getPieza();
+
+        //si la pieza es nulo, el movimiento no es valido
+        if (pieza == null) {
+            return false;
+        }
+
+        //si el destino esta ocupado con una pieza del mismo color, el movimiento no es valido
+        if (destino.isOcupada() && destino.getPieza().getColor() == color) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Devuelve una lista de movimientos validos para el tablero indicado
      *
      * @param tablero El tablero donde se calcula los movimientos
      * @param casilla la casilla donde se encuentra la pieza
-     * @param validarPermiteJaque
+     * @param validos. Indica si obtiene solo movimientos validos
      * @return
      */
-    public abstract List<Movimiento> getMovimientosValidos(Tablero tablero, Casilla casilla, boolean validarPermiteJaque);
+    public abstract List<Movimiento> getMovimientos(Tablero tablero, Casilla casilla, boolean validos);
 
     public void limpiarValores() {
         this.amenazas = this.objetivos = this.protectores = this.jugadas = 0;
@@ -150,15 +226,25 @@ public abstract class Pieza {
      * @return
      */
     protected boolean permiteJaque(Tablero tablero, Movimiento movimiento, boolean validarPermiteJaque) {
-//        return false;
         if (!validarPermiteJaque) {
             return false;
         }
         Tablero t = tablero.clone();
-        t.setColorTurno(movimiento.getPieza().getColor());
-        t.mover(Movimiento.get(t.get(movimiento.getOrigen().getNombre()), t.get(movimiento.getDestino().getNombre())));
+        t.setColorTurno(movimiento.getPieza(tablero).getColor());
+        t.mover(movimiento);
+//        t.mover(Movimiento.get(t.get(movimiento.getOrigen()), t.get(movimiento.getDestino())));
         t.calcular(false);// calcula la posicion depues del movimiento sin tomar en validar nuevamente si los movimientos posibles despues de este permite jaque
         return t.isJaque();
+        //-----------
+//        int antColor = tablero.getColorTurno();
+//        tablero.setColorTurno(movimiento.getPieza(tablero).getColor());
+//        tablero.mover(movimiento);
+//        tablero.calcular(false);// calcula la posicion y movimientos pseudo-legales
+//        boolean jaque = tablero.isJaque();
+//        tablero.desMover(movimiento);
+//        tablero.setColorTurno(antColor);
+//        tablero.calcular(false);// calcula la posicion y movimientos pseudo-legales
+//        return jaque;
     }
 
     /**
@@ -169,4 +255,47 @@ public abstract class Pieza {
     public abstract int getValor();
 
     public abstract Pieza clone();
+
+    public void amenazasAdd() {
+        amenazas++;
+    }
+
+    public void objetivosAdd() {
+        objetivos++;
+    }
+
+    public void jugadasAdd() {
+        jugadas++;
+    }
+
+    public void protectoresAdd() {
+        protectores++;
+    }
+
+    public static Pieza get(String letra, int color) {
+        if (letra == null) {
+            return null;
+        }
+        switch (letra.toUpperCase()) {
+            case "D" -> {
+                return Dama.nuevo(color);
+            }
+            case "R" -> {
+                return Rey.nuevo(color);
+            }
+            case "T" -> {
+                return Torre.nuevo(color);
+            }
+            case "A" -> {
+                return Alfil.nuevo(color);
+            }
+            case "C" -> {
+                return Caballo.nuevo(color);
+            }
+            case "P" -> {
+                return Peon.nuevo(color);
+            }
+        }
+        return null;
+    }
 }

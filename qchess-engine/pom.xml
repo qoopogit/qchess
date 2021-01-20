@@ -5,6 +5,13 @@
     <artifactId>qchess-engine</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>net.qoopo</groupId>
+            <artifactId>qchess-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>14</maven.compiler.source>
